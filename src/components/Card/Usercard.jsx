@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { getUsers, deleteUser, updateUser } from "../../services/userService";
 import { useNavigate } from "react-router-dom";
+import Clock from "../Clock";
 
 export default function Usercard() {
     const navigate = useNavigate();
@@ -118,6 +119,7 @@ export default function Usercard() {
 
     return (
         <div>
+            <Clock />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text-primary)' }}>All Users ({users.length})</h3>
                 <button style={{
