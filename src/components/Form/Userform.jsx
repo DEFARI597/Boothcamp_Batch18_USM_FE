@@ -1,4 +1,5 @@
 import { useState } from "react";
+import NameInput from "../Input/NameInput";
 
 export default function Userform() {
     const [formData, setFormData] = useState({
@@ -56,50 +57,50 @@ export default function Userform() {
             margin: '0'
         }}>
             <form onSubmit={handleSubmit}>
-                <div>
-                    <label style={labelStyle} htmlFor="name">Full Name</label>
-                    <input
-                        id="name"
-                        name="name"
-                        type="text"
-                        placeholder="e.g. John Doe"
-                        style={inputStyle}
-                        value={formData.name}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-                
-                <div>
-                    <label style={labelStyle} htmlFor="email">Email Address</label>
-                    <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="e.g. john@example.com"
-                        style={inputStyle}
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-                
-                <div>
-                    <label style={labelStyle} htmlFor="phone">Phone Number</label>
-                    <input
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        placeholder="e.g. +62 812 3456 7890"
-                        style={inputStyle}
-                        value={formData.phone}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
 
-                <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
-                    <div style={{ flex: 1 }}>
+                    <div style={{ gridColumn: '1 / -1' }}>
+                        <label style={labelStyle} htmlFor="name">Full Name</label>
+                        <NameInput
+                            id="name"
+                            name="name"
+                            placeholder="e.g. John Doe"
+                            style={{ ...inputStyle, marginBottom: 0 }}
+                            value={formData.name}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
+
+                    <div>
+                        <label style={labelStyle} htmlFor="email">Email Address</label>
+                        <input
+                            id="email"
+                            name="email"
+                            type="email"
+                            placeholder="e.g. john@example.com"
+                            style={{ ...inputStyle, marginBottom: 0 }}
+                            value={formData.email}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
+
+                    <div>
+                        <label style={labelStyle} htmlFor="phone">Phone Number</label>
+                        <input
+                            id="phone"
+                            name="phone"
+                            type="tel"
+                            placeholder="e.g. +62 812 3456 7890"
+                            style={{ ...inputStyle, marginBottom: 0 }}
+                            value={formData.phone}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
+
+                    <div>
                         <label style={labelStyle} htmlFor="role">Role</label>
                         <select
                             id="role"
@@ -113,8 +114,8 @@ export default function Userform() {
                             <option value="User">User</option>
                         </select>
                     </div>
-                    
-                    <div style={{ flex: 1 }}>
+
+                    <div>
                         <label style={labelStyle} htmlFor="status">Status</label>
                         <select
                             id="status"
@@ -128,9 +129,9 @@ export default function Userform() {
                         </select>
                     </div>
                 </div>
-                
+
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
-                    <button 
+                    <button
                         type="button"
                         style={{
                             backgroundColor: 'transparent',
@@ -148,7 +149,7 @@ export default function Userform() {
                     >
                         Cancel
                     </button>
-                    <button 
+                    <button
                         type="submit"
                         style={{
                             backgroundColor: 'var(--accent-primary)',

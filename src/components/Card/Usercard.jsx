@@ -1,20 +1,64 @@
 import { useState, useEffect } from "react";
-import { getUsers } from "../../services/userService";
+import { getUsers, deleteUser, updateUser } from "../../services/userService";
 import { useNavigate } from "react-router-dom";
 
 export default function Usercard() {
     const navigate = useNavigate();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [editingUser, setEditingUser] = useState(null);
+    const [editFormData, setEditFormData] = useState({ name: '', email: '', phone: '', role: '', status: '' });
+
+    const fetchUsers = async () => {
+        setLoading(true);
+        const data = await getUsers();
+        setUsers(data);
+        setLoading(false);
+    };
 
     useEffect(() => {
-        const fetchUsers = async () => {
-            const data = await getUsers();
-            setUsers(data);
-            setLoading(false);
-        };
         fetchUsers();
     }, []);
+
+    const handleDelete = async (id) => {
+        if (window.confirm("Are you sure you want to delete this user?")) {
+            try {
+                await deleteUser(id);
+                fetchUsers();
+            } catch (error) {
+                alert("Failed to delete user");
+            }
+        }
+    };
+
+    const handleEditClick = (user) => {
+        setEditingUser(user.id);
+        setEditFormData({ 
+            name: user.name, 
+            email: user.email, 
+            phone: user.phone, 
+            role: user.role || 'user', 
+            status: user.status || 'active' 
+        });
+    };
+
+    const handleEditChange = (e) => {
+        const { name, value } = e.target;
+        setEditFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleEditSave = async (id) => {
+        try {
+            await updateUser(id, {
+                ...editFormData,
+                isActive: editFormData.status === 'active'
+            });
+            setEditingUser(null);
+            fetchUsers();
+        } catch (error) {
+            alert("Failed to update user");
+        }
+    };
 
     if (loading) {
         return (
@@ -46,6 +90,8 @@ export default function Usercard() {
                     alignItems: 'center',
                     gap: '8px',
                     boxShadow: 'var(--shadow-sm)',
+                    border: 'none',
+                    cursor: 'pointer',
                     transition: 'background-color 0.2s'
                 }}
                 onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--accent-primary-hover)'}
@@ -64,6 +110,7 @@ export default function Usercard() {
             }}>
                 {users.map((item, index) => {
                     const isActive = item.status === 'active';
+                    const isEditing = editingUser === item.id;
                     
                     return (
                         <div key={item.id || index} style={{ 
@@ -76,60 +123,97 @@ export default function Usercard() {
                             gap: '16px',
                             boxShadow: 'var(--shadow-md)',
                             transition: 'transform 0.2s, box-shadow 0.2s',
-                            cursor: 'pointer'
+                            position: 'relative'
                         }}
                         onMouseOver={(e) => { 
-                            e.currentTarget.style.transform = 'translateY(-4px)';
-                            e.currentTarget.style.boxShadow = 'var(--shadow-lg)';
-                            e.currentTarget.style.borderColor = isActive ? 'var(--status-active-border)' : 'var(--status-inactive-border)';
+                            if (!isEditing) {
+                                e.currentTarget.style.transform = 'translateY(-4px)';
+                                e.currentTarget.style.boxShadow = 'var(--shadow-lg)';
+                                e.currentTarget.style.borderColor = isActive ? 'var(--status-active-border)' : 'var(--status-inactive-border)';
+                            }
                         }}
                         onMouseOut={(e) => { 
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = 'var(--shadow-md)';
-                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)';
+                            if (!isEditing) {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)';
+                            }
                         }}
                         >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <div style={{ 
-                                        width: '48px', height: '48px', 
-                                        borderRadius: '50%', 
-                                        backgroundColor: 'var(--bg-base)', 
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        fontSize: '18px', fontWeight: '600', color: 'var(--accent-primary)',
-                                        border: '1px solid var(--border-color)'
-                                    }}>
-                                        {item.name ? item.name.substring(0, 2).toUpperCase() : 'U'}
+                            {isEditing ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    <input type="text" name="name" value={editFormData.name} onChange={handleEditChange} placeholder="Name" style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-base)', color: 'var(--text-primary)' }} />
+                                    <input type="email" name="email" value={editFormData.email} onChange={handleEditChange} placeholder="Email" style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-base)', color: 'var(--text-primary)' }} />
+                                    <input type="text" name="phone" value={editFormData.phone} onChange={handleEditChange} placeholder="Phone" style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-base)', color: 'var(--text-primary)' }} />
+                                    <select name="role" value={editFormData.role} onChange={handleEditChange} style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-base)', color: 'var(--text-primary)' }}>
+                                        <option value="user">User</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
+                                    <select name="status" value={editFormData.status} onChange={handleEditChange} style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-base)', color: 'var(--text-primary)' }}>
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                    </select>
+                                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                                        <button onClick={() => handleEditSave(item.id)} style={{ flex: 1, padding: '8px', borderRadius: '6px', backgroundColor: 'var(--accent-primary)', color: 'white', border: 'none', cursor: 'pointer' }}>Save</button>
+                                        <button onClick={() => setEditingUser(null)} style={{ flex: 1, padding: '8px', borderRadius: '6px', backgroundColor: 'transparent', color: 'var(--text-secondary)', border: '1px solid var(--border-color)', cursor: 'pointer' }}>Cancel</button>
                                     </div>
-                                    <div>
-                                        <h4 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)', margin: 0, textTransform: 'capitalize' }}>{item.name}</h4>
-                                        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0, marginTop: '2px' }}>{item.role || 'User'}</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                            <div style={{ 
+                                                width: '48px', height: '48px', 
+                                                borderRadius: '50%', 
+                                                backgroundColor: 'var(--bg-base)', 
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                fontSize: '18px', fontWeight: '600', color: 'var(--accent-primary)',
+                                                border: '1px solid var(--border-color)'
+                                            }}>
+                                                {item.name ? item.name.substring(0, 2).toUpperCase() : 'U'}
+                                            </div>
+                                            <div>
+                                                <h4 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)', margin: 0, textTransform: 'capitalize' }}>{item.name}</h4>
+                                                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0, marginTop: '2px' }}>{item.role || 'User'}</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+                                            <div style={{
+                                                padding: '4px 8px',
+                                                borderRadius: '6px',
+                                                fontSize: '12px',
+                                                fontWeight: '500',
+                                                backgroundColor: isActive ? 'var(--status-active-bg)' : 'var(--status-inactive-bg)',
+                                                color: isActive ? 'var(--status-active-text)' : 'var(--status-inactive-text)',
+                                                border: `1px solid ${isActive ? 'var(--status-active-border)' : 'var(--status-inactive-border)'}`
+                                            }}>
+                                                {isActive ? 'Active' : 'Inactive'}
+                                            </div>
+                                            
+                                            <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+                                                <button onClick={() => handleEditClick(item)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px' }}>
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                                </button>
+                                                <button onClick={() => handleDelete(item.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }}>
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                
-                                <div style={{
-                                    padding: '4px 8px',
-                                    borderRadius: '6px',
-                                    fontSize: '12px',
-                                    fontWeight: '500',
-                                    backgroundColor: isActive ? 'var(--status-active-bg)' : 'var(--status-inactive-bg)',
-                                    color: isActive ? 'var(--status-active-text)' : 'var(--status-inactive-text)',
-                                    border: `1px solid ${isActive ? 'var(--status-active-border)' : 'var(--status-inactive-border)'}`
-                                }}>
-                                    {isActive ? 'Active' : 'Inactive'}
-                                </div>
-                            </div>
-                            
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '13px' }}>
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                                    {item.email}
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '13px' }}>
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                                    {item.phone}
-                                </div>
-                            </div>
+                                    
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '13px' }}>
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                                            {item.email}
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '13px' }}>
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                            {item.phone}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     );
                 })}
