@@ -75,6 +75,38 @@ export default function Usercard() {
         );
     }
 
+    if (users.length === 0) {
+        return (
+            <div style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', 
+                justifyContent: 'center', height: '50vh', textAlign: 'center'
+            }}>
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '16px', opacity: 0.5 }}>
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+
+                <h3 style={{ color: 'var(--text-primary)', fontSize: '20px', marginBottom: '8px' }}>
+                    Belum Ada User
+                </h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '14px', maxWidth: '300px', marginBottom: '24px' }}>
+                    Saat ini belum ada data user di sistem. Yuk, tambahkan user pertama Anda untuk mulai mengelola data!
+                </p>
+
+                <button onClick={() => navigate('/user-add')} style={{
+                    backgroundColor: 'var(--accent-primary)', color: 'white',
+                    padding: '12px 24px', borderRadius: '8px', border: 'none',
+                    fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px'
+                }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Tambah User Baru
+                </button>
+            </div>
+        );
+    }
+
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
