@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getUsers, deleteUser, updateUser } from "../../services/userService";
 import { useNavigate } from "react-router-dom";
 
@@ -8,6 +8,8 @@ export default function Usercard() {
     const [loading, setLoading] = useState(true);
     const [editingUser, setEditingUser] = useState(null);
     const [editFormData, setEditFormData] = useState({ name: '', email: '', phone: '', role: '', status: '' });
+
+    const nameInputRef = useRef(null);
 
     const fetchUsers = async () => {
         setLoading(true);
@@ -33,13 +35,20 @@ export default function Usercard() {
 
     const handleEditClick = (user) => {
         setEditingUser(user.id);
-        setEditFormData({ 
-            name: user.name, 
-            email: user.email, 
-            phone: user.phone, 
-            role: user.role || 'user', 
-            status: user.status || 'active' 
+        setEditFormData({
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            role: user.role || 'user',
+            status: user.status || 'active'
         });
+
+        // Memberikan fokus secara otomatis menggunakan ref dengan sedikit delay (menunggu render form)
+        setTimeout(() => {
+            if (nameInputRef.current) {
+                nameInputRef.current.focus();
+            }
+        }, 50);
     };
 
     const handleEditChange = (e) => {
@@ -63,12 +72,12 @@ export default function Usercard() {
     if (loading) {
         return (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
-                <div style={{ 
-                    width: '40px', height: '40px', 
-                    border: '3px solid var(--border-color)', 
-                    borderTopColor: 'var(--accent-primary)', 
-                    borderRadius: '50%', 
-                    animation: 'spin 1s linear infinite' 
+                <div style={{
+                    width: '40px', height: '40px',
+                    border: '3px solid var(--border-color)',
+                    borderTopColor: 'var(--accent-primary)',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
                 }} />
                 <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
             </div>
@@ -78,7 +87,7 @@ export default function Usercard() {
     if (users.length === 0) {
         return (
             <div style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center', 
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
                 justifyContent: 'center', height: '50vh', textAlign: 'center'
             }}>
                 <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '16px', opacity: 0.5 }}>
@@ -126,26 +135,26 @@ export default function Usercard() {
                     cursor: 'pointer',
                     transition: 'background-color 0.2s'
                 }}
-                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--accent-primary-hover)'}
-                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--accent-primary)'}
-                onClick={() => navigate('/user-add')}
+                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--accent-primary-hover)'}
+                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--accent-primary)'}
+                    onClick={() => navigate('/user-add')}
                 >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     Add User
                 </button>
             </div>
 
-            <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', 
-                gap: '24px' 
+            <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                gap: '24px'
             }}>
                 {users.map((item, index) => {
                     const isActive = item.status === 'active';
                     const isEditing = editingUser === item.id;
-                    
+
                     return (
-                        <div key={item.id || index} style={{ 
+                        <div key={item.id || index} style={{
                             backgroundColor: 'var(--bg-surface)',
                             border: 'var(--glass-border)',
                             borderRadius: '12px',
@@ -157,24 +166,24 @@ export default function Usercard() {
                             transition: 'transform 0.2s, box-shadow 0.2s',
                             position: 'relative'
                         }}
-                        onMouseOver={(e) => { 
-                            if (!isEditing) {
-                                e.currentTarget.style.transform = 'translateY(-4px)';
-                                e.currentTarget.style.boxShadow = 'var(--shadow-lg)';
-                                e.currentTarget.style.borderColor = isActive ? 'var(--status-active-border)' : 'var(--status-inactive-border)';
-                            }
-                        }}
-                        onMouseOut={(e) => { 
-                            if (!isEditing) {
-                                e.currentTarget.style.transform = 'translateY(0)';
-                                e.currentTarget.style.boxShadow = 'var(--shadow-md)';
-                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)';
-                            }
-                        }}
+                            onMouseOver={(e) => {
+                                if (!isEditing) {
+                                    e.currentTarget.style.transform = 'translateY(-4px)';
+                                    e.currentTarget.style.boxShadow = 'var(--shadow-lg)';
+                                    e.currentTarget.style.borderColor = isActive ? 'var(--status-active-border)' : 'var(--status-inactive-border)';
+                                }
+                            }}
+                            onMouseOut={(e) => {
+                                if (!isEditing) {
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+                                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)';
+                                }
+                            }}
                         >
                             {isEditing ? (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                    <input type="text" name="name" value={editFormData.name} onChange={handleEditChange} placeholder="Name" style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-base)', color: 'var(--text-primary)' }} />
+                                    <input ref={nameInputRef} type="text" name="name" value={editFormData.name} onChange={handleEditChange} placeholder="Name" style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-base)', color: 'var(--text-primary)' }} />
                                     <input type="email" name="email" value={editFormData.email} onChange={handleEditChange} placeholder="Email" style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-base)', color: 'var(--text-primary)' }} />
                                     <input type="text" name="phone" value={editFormData.phone} onChange={handleEditChange} placeholder="Phone" style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-base)', color: 'var(--text-primary)' }} />
                                     <select name="role" value={editFormData.role} onChange={handleEditChange} style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-base)', color: 'var(--text-primary)' }}>
@@ -194,10 +203,10 @@ export default function Usercard() {
                                 <>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                            <div style={{ 
-                                                width: '48px', height: '48px', 
-                                                borderRadius: '50%', 
-                                                backgroundColor: 'var(--bg-base)', 
+                                            <div style={{
+                                                width: '48px', height: '48px',
+                                                borderRadius: '50%',
+                                                backgroundColor: 'var(--bg-base)',
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                                 fontSize: '18px', fontWeight: '600', color: 'var(--accent-primary)',
                                                 border: '1px solid var(--border-color)'
@@ -209,7 +218,7 @@ export default function Usercard() {
                                                 <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0, marginTop: '2px' }}>{item.role || 'User'}</p>
                                             </div>
                                         </div>
-                                        
+
                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
                                             <div style={{
                                                 padding: '4px 8px',
@@ -222,7 +231,7 @@ export default function Usercard() {
                                             }}>
                                                 {isActive ? 'Active' : 'Inactive'}
                                             </div>
-                                            
+
                                             <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
                                                 <button onClick={() => handleEditClick(item)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px' }}>
                                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
@@ -233,7 +242,7 @@ export default function Usercard() {
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '13px' }}>
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>

@@ -10,6 +10,16 @@ export const getUsers = async () => {
     }
 };
 
+export const addUser = async (userData) => {
+    try {
+        const response = await axios.post('http://localhost:3000/api/users', userData);
+        return response.data;
+    } catch (error) {
+        console.error("Could not add user:", error);
+        throw error;
+    }
+};
+
 export const updateUser = async (id, userData) => {
     try {
         const response = await axios.put(`http://localhost:3000/api/users/${id}`, userData);

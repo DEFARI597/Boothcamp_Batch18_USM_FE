@@ -1,7 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import NameInput from "../Input/NameInput";
+import { addUser } from "../../services/userService";
 
 export default function Userform() {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -18,10 +21,21 @@ export default function Userform() {
         }));
     }
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
-        console.log("Form submitted:", formData);
-        // Add user logic here
+        try {
+            // Map status to isActive boolean as expected by the backend
+            const userData = {
+                ...formData,
+                isActive: formData.status === 'active'
+            };
+            
+            await addUser(userData);
+            alert("User successfully created!");
+            navigate(-1); // Return to previous page
+        } catch (error) {
+            alert(error.response?.data?.error || "Failed to add user");
+        }
     }
 
     const inputStyle = {
@@ -133,6 +147,7 @@ export default function Userform() {
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
                     <button
                         type="button"
+                        onClick={() => navigate(-1)}
                         style={{
                             backgroundColor: 'transparent',
                             color: 'var(--text-primary)',
